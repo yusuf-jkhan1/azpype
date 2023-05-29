@@ -41,40 +41,33 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true || github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/download-artifact@v2
+      - name: Download Linux wheels
+        uses: actions/download-artifact@v2
         with:
           name: wheels
           path: dist/
 
-      - name: Move wheel files to dist/
-        run: |
-          for dir in dist/*/; do
-            mv ${dir}*.whl dist/
-            rmdir ${dir}
-          done
-
       - name: Publish Linux wheels to Test PyPI
-        uses: pypa/gh-action-pypi-publish-manylinux1@v1
-        with:
-          user: ${{ secrets.PYPI_USERNAME }}
-          password: ${{ secrets.PYPI_PASSWORD }}
-          repository_url: https://test.pypi.org/legacy/
-          packages_dir: dist/
+        run: |
+          twine upload --repository-url https://test.pypi.org/legacy/ dist/*-linux_*.whl
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 
   upload_wheels_windows_macos:
     needs: build_wheels
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true || github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/download-artifact@v2
+      - name: Download Windows and macOS wheels
+        uses: actions/download-artifact@v2
         with:
           name: wheels
           path: dist/
 
       - name: Publish Windows and macOS wheels to Test PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: ${{ secrets.PYPI_USERNAME }}
-          password: ${{ secrets.PYPI_PASSWORD }}
-          repository_url: https://test.pypi.org/legacy/
-          packages_dir: dist/
+        run: |
+          twine upload --repository-url https://test.pypi.org/legacy/ dist/*-win_*.whl dist/*-macosx_*.whl
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
