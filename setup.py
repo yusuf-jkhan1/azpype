@@ -47,7 +47,7 @@ setup(
     include_package_data=True,
     package_data={
         # Include all files in the setup/assets/bin directory
-        '': ['setup/assets/bin/*/*/*', 'setup/assets/bin/*/*/*.exe'],
+        '': ['setup/assets/bin/*/*', 'setup/assets/bin/*/*.exe'],
     },
     install_requires=requirements,
     cmdclass={
