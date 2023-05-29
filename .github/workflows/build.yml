@@ -48,6 +48,10 @@ jobs:
           name: wheels
           path: dist/
 
+      - name: Install twine
+        run: |
+          python -m pip install --upgrade twine
+
       - name: Publish Linux wheels to Test PyPI
         working-directory: ./dist
         run: |
