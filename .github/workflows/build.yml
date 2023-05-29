@@ -43,7 +43,14 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: dist/
-          
+
+      - name: Move wheel files to dist/
+        run: |
+          for dir in dist/*/; do
+            mv ${dir}*.whl dist/
+            rmdir ${dir}
+          done
+
       - name: Publish to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -51,3 +58,5 @@ jobs:
           password: ${{ secrets.TEST_PYPI_PASSWORD }}
           repository_url: https://test.pypi.org/legacy/
           packages_dir: dist/
+        
+
