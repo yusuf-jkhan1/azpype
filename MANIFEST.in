@@ -1,0 +1,6 @@
+include setup/assets/bin/azcopy_darwin_amd64_10.18.1/azcopy
+include setup/assets/bin/azcopy_linux_amd64_10.18.1/azcopy
+include setup/assets/bin/azcopy_linux_arm64_10.18.1/azcopy
+include setup/assets/bin/azcopy_windows_amd64_10.18.1/azcopy.exe
+include setup/assets/config_templates/copy_config.yaml
+

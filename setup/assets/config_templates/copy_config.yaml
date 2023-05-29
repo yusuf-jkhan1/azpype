@@ -1,0 +1,83 @@
+# Places folder sources as subdirectories under the destination.
+# Default: True
+as-subdir: NULL
+
+# Use this block size (specified in MiB) when uploading to Azure Storage, and downloading from Azure Storage.
+# Default value is automatically calculated based on file size.
+block-size-mb: NULL
+
+# Check the length of a file on the destination after the transfer.
+# If there's a mismatch between source and destination, the transfer is marked as failed.
+# Default: True
+check-length: NULL
+
+# Prints the file paths that would be copied by this command.
+# This flag doesn't copy the actual files.
+# Default: None
+dry-run: NULL
+
+# Exclude these paths when copying.
+# This option doesn't support wildcard characters (*). Checks relative path prefix.
+# Default: None
+exclude-path: NULL
+
+# Exclude these files when copying. This option supports wildcard characters (*).
+# Default: None
+exclude-pattern: NULL
+
+# Exclude all the relative path of the files that align with regular expressions.
+# Default: None
+exclude-regex: NULL
+
+# Follow symbolic links when uploading from local file system.
+# Default: None
+follow-symlinks: NULL
+
+# When overwriting an existing file on Windows or Azure Files,
+# force the overwrite to work even if the existing file has its read-only attribute set.
+# Default: None
+force-if-read-only: NULL
+
+# Include only those files modified on or after the given date/time.
+# Default: None
+include-after: NULL
+
+# Include only those files modified before or on the given date/time.
+# Default: None
+include-before: NULL
+
+# Include only these paths when copying.
+# This option doesn't support wildcard characters (*). Checks relative path prefix.
+# Default: None
+include-path: NULL
+
+# Include only these files when copying.
+# This option supports wildcard characters (*).
+# Default: None
+include-pattern: NULL
+
+# Include only the relative path of the files that align with regular expressions.
+# Default: None
+include-regex: NULL
+
+# Define the log verbosity for the log file, available levels: INFO, WARNING, ERROR, and NONE.
+# Default: 'INFO'
+log-level: NULL
+
+# Upload to Azure Storage with these key-value pairs as metadata.
+# Default: None
+metadata: NULL
+
+# Overwrite the conflicting files and blobs at the destination if this flag is set to true.
+# Possible values include 'true', 'false', 'prompt', and 'ifSourceNewer'.
+# Default: 'true'
+overwrite: 'ifSourceNewer'
+
+# Create an MD5 hash of each file, and save the hash as the Content-MD5 property of the destination blob or file.
+# Only available when uploading.
+# Default: None
+put-md5: NULL
+
+# Look into subdirectories recursively when uploading from local file system.
+# Default: None
+recursive: 'True'
