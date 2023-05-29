@@ -29,10 +29,11 @@ jobs:
         run: python -m pip install --upgrade setuptools wheel twine
 
       - name: Build wheel
-        run: python setup.py bdist_wheel
+        run: python setup.py bdist_wheel --universal
 
       - uses: actions/upload-artifact@v2
         with:
+          name: wheels
           path: dist/*.whl
 
   upload_wheels:
@@ -42,14 +43,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v2
         with:
+          name: wheels
           path: dist/
-
-      - name: Move wheel files to dist/
-        run: |
-          for dir in dist/*/; do
-            mv ${dir}*.whl dist/
-            rmdir ${dir}
-          done
 
       - name: Publish to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -58,5 +53,3 @@ jobs:
           password: ${{ secrets.PYPI_PASSWORD }}
           repository_url: https://test.pypi.org/legacy/
           packages_dir: dist/
-        
-
