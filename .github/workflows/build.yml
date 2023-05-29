@@ -18,7 +18,8 @@ jobs:
         python-version: [3.7, 3.8, 3.9, '3.10', '3.11']
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -32,6 +33,14 @@ jobs:
       - name: Build wheel
         run: |
           python setup.py bdist_wheel
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: dist/
 
   upload_wheels_linux:
     needs: build_wheels
@@ -44,7 +53,7 @@ jobs:
           name: wheels
           path: dist/
 
-      - name: Set up Python
+      - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
@@ -64,13 +73,13 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true || github.ref == 'refs/heads/main'
     steps:
-      - name: Download Windows and macOS wheels
+      - name: Download Linux wheels
         uses: actions/download-artifact@v2
         with:
           name: wheels
           path: dist/
 
-      - name: Set up Python
+      - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
