@@ -1,4 +1,4 @@
-name: Build and Publish Mac and Windows
+name: Build and Publish Linux Wheel
 
 on:
   push:
@@ -10,11 +10,8 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest]
+    name: Build wheels on Ubuntu
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -34,11 +31,12 @@ jobs:
           python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD: cp38-*
+          CIBW_SKIP: "*-win_* *-macosx_*"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: wheels-${{ matrix.os }}
+          name: wheels
           path: ./wheelhouse/*.whl
 
   upload_wheels:
@@ -49,12 +47,7 @@ jobs:
       - name: Download wheels
         uses: actions/download-artifact@v2
         with:
-          name: wheels-windows-latest
-          path: dist/
-      - name: Download wheels
-        uses: actions/download-artifact@v2
-        with:
-          name: wheels-macos-latest
+          name: wheels
           path: dist/
 
       - name: Set up Python 3.8
@@ -63,11 +56,4 @@ jobs:
           python-version: 3.8
 
       - name: Install twine
-        run: python -m pip install twine
-
-      - name: Publish wheels to Test PyPI
-        run: |
-          twine upload --repository-url https://test.pypi.org/legacy/ dist/*.whl
-        env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run:
