@@ -33,9 +33,9 @@ setup(
     name="azpype",
     version="0.1",
     description="A native Python interface wrapping AzCopy for bulk data transfer to and from Azure Blob Storage.",
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding="UTF-8").read(),
     long_description_content_type='text/markdown',
-    url="https://github.com/yourusername/your-repo",
+    url="https://github.com/yusuf-jkhan1/azpype",
     author="Yusuf Khan",
     license="MIT",
     classifiers=[
