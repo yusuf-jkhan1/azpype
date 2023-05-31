@@ -1,30 +1,72 @@
-name: Build and Publish Linux Wheel
+name: Build and Publish Linux
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types:
-      - closed
+on: [push, pull_request]
 
 jobs:
-  Linux-build:
+  build_wheels:
+    name: Build wheels on Ubuntu
     runs-on: ubuntu-latest
-    env:
-      TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: build wheel
-        run: |
-          pip install wheel
-          python setup.py bdist_wheel --universal
-      - name: upload wheel
-        run: |
-          pip install twine
-          twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+          python-version: 3.8
+
+      - name: Install cibuildwheel
+        run: pip install cibuildwheel
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wheels-ubuntu
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  upload_pypi:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download wheels
+        uses: actions/download-artifact@v2
+        with:
+          name: wheels-ubuntu
+          path: dist/
+
+      - name: Download sdist
+        uses: actions/download-artifact@v2
+        with:
+          name: sdist
+          path: dist/
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install twine
+        run: pip install twine
+
+      - name: Upload distributions to PyPI
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
