@@ -7,7 +7,7 @@ from azpype.logging_config import CopyLogger
 from azpype.validators import validate_azcopy_envs, validate_login_type, validate_azure_blob_url, validate_local_path, validate_network_available
 
 class Copy(BaseCommand):
-    def __init__(self, source: str, destination: str, **options):
+    def __init__(self, source: str, destination: str, sas_token:str = None, **options):
         """
         Initialize a new instance of the Copy class.
 
@@ -66,7 +66,11 @@ class Copy(BaseCommand):
         self.logger.info(f"Run log directory: {self.run_log_directory}")
 
         self.source = source
-        self.destination = destination
+        self.sas_token = sas_token
+        if self.sas_token:
+            self.destination = f"{destination}?{self.sas_token}"
+        else:
+            self.destination = destination
         valid, failed_checks = self.prevalidation()
         if valid:
             self.options = self.build_flags(options)
@@ -84,8 +88,8 @@ class Copy(BaseCommand):
         failed_checks = [check for check, result in validation_results.items() if not result]
 
         return not failed_checks, failed_checks
-        
 
+        
     def execute(self):
         """
         Execute the copy command with the given source, destination, and options.
