@@ -88,8 +88,8 @@ class Copy(BaseCommand):
         failed_checks = [check for check, result in validation_results.items() if not result]
 
         return not failed_checks, failed_checks
-        
 
+        
     def execute(self):
         """
         Execute the copy command with the given source, destination, and options.
