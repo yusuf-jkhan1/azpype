@@ -1,4 +1,5 @@
 import os
+import sys
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
@@ -20,17 +21,14 @@ class PostInstallCommand(install):
         install.run(self)
         setup_dir = os.path.dirname(os.path.realpath(__file__))
         post_install_script = os.path.join(setup_dir, 'setup', 'post_install.py')
-        try:
-            os.system(f"python {post_install_script}")
-        except:
-            os.system(f"python3 {post_install_script}")
+        os.system(f"{sys.executable} {post_install_script}")
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup(
     name="azpype",
-    version="0.3.4",
+    version="0.3.5",
     description="A native Python interface wrapping AzCopy for bulk data transfer to and from Azure Blob Storage.",
     long_description=open('README.md', encoding="UTF-8").read(),
     long_description_content_type='text/markdown',
