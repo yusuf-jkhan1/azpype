@@ -10,8 +10,7 @@ class bdist_wheel(_bdist_wheel):
         self.root_is_pure = False
 
     def get_tag(self):
-        python, abi, plat = _bdist_wheel.get_tag(self)
-        python, abi = 'py2.py3', 'none'
+        python, abi, plat = 'py2.py3', 'none', 'any'
         return python, abi, plat
 
 
