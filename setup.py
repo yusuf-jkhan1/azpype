@@ -10,8 +10,7 @@ class bdist_wheel(_bdist_wheel):
         self.root_is_pure = False
 
     def get_tag(self):
-        python, abi, plat = _bdist_wheel.get_tag(self)
-        python, abi = 'py2.py3', 'none'
+        python, abi, plat = 'py2.py3', 'none', 'any'
         return python, abi, plat
 
 
@@ -21,14 +20,17 @@ class PostInstallCommand(install):
         install.run(self)
         setup_dir = os.path.dirname(os.path.realpath(__file__))
         post_install_script = os.path.join(setup_dir, 'setup', 'post_install.py')
-        os.system(f"python {post_install_script}")
+        try:
+            os.system(f"python {post_install_script}")
+        except:
+            os.system(f"python3 {post_install_script}")
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup(
     name="azpype",
-    version="0.3.1",
+    version="0.3.3",
     description="A native Python interface wrapping AzCopy for bulk data transfer to and from Azure Blob Storage.",
     long_description=open('README.md', encoding="UTF-8").read(),
     long_description_content_type='text/markdown',
