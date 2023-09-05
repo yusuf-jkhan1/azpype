@@ -10,7 +10,7 @@ on:
 
 jobs:
   build_wheels:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -29,7 +29,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: wheels-ubuntu
+          name: wheels-linux
           path: dist/*.whl
 
   build_sdist:
@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v2
         with:
-          name: wheels-ubuntu
+          name: wheels-linux
           path: dist
 
       - uses: actions/download-artifact@v2
