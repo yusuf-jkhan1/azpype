@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
   pull_request:
     types:
       - closed
@@ -43,7 +44,7 @@ jobs:
   upload_wheels:
     needs: build_wheels
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true || github.ref == 'refs/heads/main'
+    if: github.event.pull_request.merged == true || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     steps:
       - name: Download wheels
         uses: actions/download-artifact@v2
@@ -66,7 +67,11 @@ jobs:
 
       - name: Publish wheels to PyPI
         run: |
-          twine upload --skip-existing --repository-url https://upload.pypi.org/legacy/ dist/*.whl
+          if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            twine upload --skip-existing --repository-url https://test.pypi.org/legacy/ dist/*.whl
+          else
+            twine upload --skip-existing --repository-url https://upload.pypi.org/legacy/ dist/*.whl
+          fi
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
