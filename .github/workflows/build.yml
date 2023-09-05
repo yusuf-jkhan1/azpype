@@ -1,4 +1,4 @@
-name: Build and Publish Mac and Windows
+name: Build and Publish Mac (Intel) and Windows
 
 on:
   push:
