@@ -20,7 +20,10 @@ class PostInstallCommand(install):
         install.run(self)
         setup_dir = os.path.dirname(os.path.realpath(__file__))
         post_install_script = os.path.join(setup_dir, 'setup', 'post_install.py')
-        os.system(f"python {post_install_script}")
+        try:
+            os.system(f"python {post_install_script}")
+        except:
+            os.system(f"python3 {post_install_script}")
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
