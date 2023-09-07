@@ -28,7 +28,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="azpype",
-    version="0.3.5",
+    version="0.3.7a0",
     description="A native Python interface wrapping AzCopy for bulk data transfer to and from Azure Blob Storage.",
     long_description=open('README.md', encoding="UTF-8").read(),
     long_description_content_type='text/markdown',
@@ -47,8 +47,12 @@ setup(
         '': ['setup/assets/bin/*/*', 'setup/assets/bin/*/*.exe'],
     },
     install_requires=requirements,
+    entry_points={
+        'console_scripts': [
+            'azpype_post_install=azpype.setup_actions:main',
+        ],
+    },
     cmdclass={
-        'install': PostInstallCommand,
         'bdist_wheel': bdist_wheel
     }
 )
