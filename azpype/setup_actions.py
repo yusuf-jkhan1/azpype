@@ -3,14 +3,14 @@ from pathlib import Path
 import platform
 
 def download_file(url, target_path):
-    response = requests.get(url, stream=True)
+    response = requests.get(url, stream=True, verify=False)
     response.raise_for_status()
     with open(target_path, 'wb') as file:
         for chunk in response.iter_content(chunk_size=8192): 
             file.write(chunk)
 
 def main():
-    
+
     try:
         home = Path.home()
         dir = home / '.azpype'
