@@ -47,8 +47,13 @@ setup(
         '': ['setup/assets/bin/*/*', 'setup/assets/bin/*/*.exe'],
     },
     install_requires=requirements,
+    entry_points={
+        'console_scripts': [
+            'azpype_post_install=azpype.setup_actions:main',
+        ],
+    },
     cmdclass={
-        'install': PostInstallCommand,
+        #'install': PostInstallCommand,
         'bdist_wheel': bdist_wheel
     }
 )

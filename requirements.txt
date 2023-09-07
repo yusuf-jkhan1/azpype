@@ -37,3 +37,8 @@ tornado==6.3.2
 traitlets==5.9.0
 watchdog==3.0.0
 wcwidth==0.2.6
+certifi==2023.7.22
+charset-normalizer==3.2.0
+idna==3.4
+requests==2.31.0
+urllib3==2.0.4
