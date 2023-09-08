@@ -2,17 +2,17 @@ import os
 import sys
 from setuptools import setup, find_packages
 from setuptools.command.install import install
-from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+# from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
 
-class bdist_wheel(_bdist_wheel):
-    def finalize_options(self):
-        _bdist_wheel.finalize_options(self)
-        self.root_is_pure = False
+# class bdist_wheel(_bdist_wheel):
+#     def finalize_options(self):
+#         _bdist_wheel.finalize_options(self)
+#         self.root_is_pure = False
 
-    def get_tag(self):
-        python, abi, plat = 'py2.py3', 'none', 'any'
-        return python, abi, plat
+#     def get_tag(self):
+#         python, abi, plat = 'py2.py3', 'none', 'any'
+#         return python, abi, plat
 
 
 class PostInstallCommand(install):
@@ -28,7 +28,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="azpype",
-    version="0.3.7a1",
+    version="0.3.7a2",
     description="A native Python interface wrapping AzCopy for bulk data transfer to and from Azure Blob Storage.",
     long_description=open('README.md', encoding="UTF-8").read(),
     long_description_content_type='text/markdown',
