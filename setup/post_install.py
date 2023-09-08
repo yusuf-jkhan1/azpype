@@ -57,10 +57,15 @@ from pathlib import Path
 import shutil
 import platform
 
+
+print("Post-install Script Starting ...")
+
 home = Path.home()
 dir = home / '.azpype'
 
 dir.mkdir(parents=True, exist_ok=True)
+
+print("Azpype directory created at: ", dir)
 
 setup_dir = Path(os.path.dirname(os.path.realpath(__file__)))
 
@@ -68,6 +73,9 @@ src_dir = setup_dir / 'assets' / 'config_templates'
 for file_path in src_dir.glob('*'):
     if file_path.is_file():
         shutil.copy(file_path, dir)
+
+
+print("Detected Platform: ", platform.system())
 
 src_file = None
 if platform.system() == 'Darwin':
@@ -82,3 +90,5 @@ elif platform.system() == 'Linux':
 
 if src_file is not None:
     shutil.copy(src_file, dir)
+
+print("Post-install Script Complete!")
