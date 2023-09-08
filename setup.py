@@ -19,12 +19,13 @@ class bdist_wheel(_bdist_wheel):
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
-        print("Running post-install script...")
         install.run(self)
+        print("Running post-install script...")
         setup_dir = os.path.dirname(os.path.realpath(__file__))
         post_install_script = os.path.join(setup_dir, 'setup', 'post_install.py')
         print(f"Running {post_install_script}...")
         os.system(f"{sys.executable} {post_install_script}")
+
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
