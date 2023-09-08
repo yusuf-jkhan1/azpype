@@ -1,6 +1,7 @@
 import requests
 from pathlib import Path
 import platform
+import traceback
 
 def download_file(url, target_path):
     response = requests.get(url, stream=True, verify=False)
@@ -40,6 +41,7 @@ def main():
 
     except Exception as e:
         print(f"An error occurred: {e}")
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
