@@ -25,6 +25,7 @@ jobs:
 
       - name: Build sdist
         run: |
+          pip install wheel
           python setup.py sdist
           mkdir -p dists
           mv dist/*.tar.gz dists/
