@@ -18,17 +18,21 @@ from setuptools.command.install import install
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
+        print("Running post install command!")
         install.run(self)
         setup_dir = os.path.dirname(os.path.realpath(__file__))
         post_install_script = os.path.join(setup_dir, 'setup', 'post_install.py')
+        print("System executable: ", sys.executable)
+        print("Post install script: ", post_install_script)
         os.system(f"{sys.executable} {post_install_script}")
+
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup(
     name="azpype",
-    version="0.3.7a4",
+    version="0.3.7a5",
     description="A native Python interface wrapping AzCopy for bulk data transfer to and from Azure Blob Storage.",
     long_description=open('README.md', encoding="UTF-8").read(),
     long_description_content_type='text/markdown',

@@ -2,6 +2,9 @@ import requests
 from pathlib import Path
 import platform
 import traceback
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 def download_file(url, target_path):
     response = requests.get(url, stream=True, verify=False)
@@ -11,11 +14,12 @@ def download_file(url, target_path):
             file.write(chunk)
 
 def main():
-
+    print("Post-install Script Starting ...")
     try:
         home = Path.home()
         dir = home / '.azpype'
         dir.mkdir(parents=True, exist_ok=True)
+        print("Azpype directory created at: ", dir)
 
         config_template_base_url = "https://github.com/yusuf-jkhan1/azpype/blob/main/setup/assets/config_templates"
         config_template_files = ["copy_config.yaml"]  # Add more when/if needed
@@ -35,8 +39,10 @@ def main():
                 binary_name = 'azcopy_linux_amd64_10.18.1/azcopy'
             elif platform.machine() == 'aarch64':
                 binary_name = 'azcopy_linux_arm64_10.18.1/azcopy'
-
+        
+        print("Detected Platform: ", platform.system())
         if binary_name:
+            print(f"Downloading AzCopy binary: {binary_name}")
             download_file(f"{binary_base_url}/{binary_name}?raw=true", dir / binary_name.split('/')[-1])
 
     except Exception as e:
