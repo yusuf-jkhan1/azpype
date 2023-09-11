@@ -16,9 +16,9 @@ The secondary aim is for it to extend the functionality with some additional sca
 -- INFO HERE --
 
 ---
-## Installation
+## Installation & Init
 
-Currently supports Windows, Mac (Apple Silicon and Intel)
+Currently supports x86_64, and Apple Silicon
 
 > 📢 _**Important:** For both convenience and the purpose of behaving as a python native library; installing azpype will additionally download the platform appropriate precompiled [azcopy](https://github.com/Azure/azure-storage-azcopy/releases) binary (**v10.18.1**) and store it under
 `~/.azpype/`. This will be bundled in as part of the package distributuion and not as a separate installation script._
@@ -27,16 +27,29 @@ Install via pip
 ```
 pip install azpype
 ```
+
+Then from the terminal run
+```
+azpype-init
+```
+This will install and setup a `~/.azpype` directory and download the appropriate azcopy binary and baseline config.
+
 ---
 ## Usage
 
 ### Setup for Authentication
-Currently azpype leverages application service principal based auth. Ensure that either the environment or the process make the following environement variables available:  
+Currently azpype supports application service principal based and shared access signature (SAS) token authentication. 
+
+
+### Service Principal
+The recommended method is to use application service principals. To do so create/register the app in Azure and then grant it the appropriate RBAC permissions in any Blob Storage accounts you intend to use. 
+Ensure that the host that runs Azpype has access to the following environment variables via the host or process environment.
 -  `AZCOPY_TENANT_ID`
 - `AZCOPY_SPA_APPLICATION_ID`
 - `AZCOPY_SPA_CLIENT_SECRET`
 - `AZCOPY_AUTO_LOGIN_TYPE`
 
+#### Examples of setting the environment variables
 Setting and environment variable in python:
 ```python
 import os
@@ -70,6 +83,10 @@ OR Set environment variable via shell (Windows)
 ```shell
 setx AZCOPY_TENANT_ID ""12d3fba3-efac-1234-a1b2-3f4cafbcb123"
 ```
+
+#### Shared Access Signature (SAS) Token
+
+For shared access signature use the `sas_token` parameter in the `Copy()` command and supply the sas token excluding the leading '?'
 
 ### Configuration
 

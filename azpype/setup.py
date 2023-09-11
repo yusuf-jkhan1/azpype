@@ -1,6 +1,11 @@
 import requests
 from pathlib import Path
 import platform
+import urllib3
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+urllib3.disable_warnings(InsecureRequestWarning)
+
+
 
 def download_file(url, target_path):
     response = requests.get(url, stream=True, verify=False)
