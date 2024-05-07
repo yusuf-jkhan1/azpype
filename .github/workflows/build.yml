@@ -63,5 +63,5 @@ jobs:
             twine upload --skip-existing --repository-url https://upload.pypi.org/legacy/ dist/*.whl
           fi
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN_AZPYPE }}
