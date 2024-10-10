@@ -4,7 +4,7 @@ from watchdog.events import FileSystemEventHandler
 import time
 from .base_command import BaseCommand
 from azpype.logging_config import CopyLogger
-from azpype.validators import validate_azcopy_envs, validate_login_type, validate_azure_blob_url, validate_local_path, validate_network_available
+from azpype.validators import validate_azcopy_envs, validate_login_type, is_valid_path_or_url, validate_local_path, validate_network_available
 
 class Copy(BaseCommand):
     def __init__(self, source: str, destination: str, sas_token:str = None, **options):
@@ -81,12 +81,10 @@ class Copy(BaseCommand):
 
     def prevalidation(self):
         validation_results = {
-            "is_valid_local_path": validate_local_path(self.source, self.logger),
-            "is_valid_blob_url_format": validate_azure_blob_url(self.destination, self.logger)
+            "source": is_valid_path_or_url(self.source, self.logger),
+            "destination": is_valid_path_or_url(self.destination, self.logger)
         }
-
         failed_checks = [check for check, result in validation_results.items() if not result]
-
         return not failed_checks, failed_checks
 
         
@@ -102,51 +100,50 @@ class Copy(BaseCommand):
         args = [self.source, self.destination]
         return super().execute(args, self.options)
 
+# TODO: Add support for filewatching agent
+# class MonitoredCopy(Copy):
+#     def __init__(self, source: str, destination: str, **options):
+#         super().__init__(source, destination, **options)
+#         self.source = source
+#         self.destination = destination
+#         self.observer = Observer()
 
+#     def _is_network_filesystem(self):
+#         if platform.system() == 'Windows' and self.source.startswith('\\\\'):
+#             return True
 
-class MonitoredCopy(Copy):
-    def __init__(self, source: str, destination: str, **options):
-        super().__init__(source, destination, **options)
-        self.source = source
-        self.destination = destination
-        self.observer = Observer()
+#         elif platform.system() in ('Linux', 'Darwin'):
+#             try:
+#                 df_output = subprocess.check_output(['df', self.source]).decode().split("\n")
+#                 fs_type = df_output[1].split()[-1]
+#                 return fs_type in ('nfs', 'smbfs', 'cifs')
+#             except:
+#                 pass
+#             return False
 
-    def _is_network_filesystem(self):
-        if platform.system() == 'Windows' and self.source.startswith('\\\\'):
-            return True
+#     def _set_observer(self):
+#         if _is_network_filesystem:
+#             self.observer = PollingObserver()
+#         else:
+#             self.observer = Observer()
 
-        elif platform.system() in ('Linux', 'Darwin'):
-            try:
-                df_output = subprocess.check_output(['df', self.source]).decode().split("\n")
-                fs_type = df_output[1].split()[-1]
-                return fs_type in ('nfs', 'smbfs', 'cifs')
-            except:
-                pass
-            return False
+#     class CopyHandler(FileSystemEventHandler):
+#         def __init__(self, monitored_copy):
+#             self.monitored_copy = monitored_copy
 
-    def _set_observer(self):
-        if _is_network_filesystem:
-            self.observer = PollingObserver()
-        else:
-            self.observer = Observer()
-
-    class CopyHandler(FileSystemEventHandler):
-        def __init__(self, monitored_copy):
-            self.monitored_copy = monitored_copy
-
-        def on_any_event(self, event):
-            if not event.is_directory:
-                self.monitored_copy.execute()
+#         def on_any_event(self, event):
+#             if not event.is_directory:
+#                 self.monitored_copy.execute()
                 
-    def execute_with_monitoring(self):
-        event_handler = self.CopyHandler(self)
-        self.observer.schedule(event_handler, path=self.source, recursive=False)
-        self.observer.start()
+#     def execute_with_monitoring(self):
+#         event_handler = self.CopyHandler(self)
+#         self.observer.schedule(event_handler, path=self.source, recursive=False)
+#         self.observer.start()
 
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            self.observer.stop()
+#         try:
+#             while True:
+#                 time.sleep(1)
+#         except KeyboardInterrupt:
+#             self.observer.stop()
 
-        self.observer.join()
+#         self.observer.join()
