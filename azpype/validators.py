@@ -6,7 +6,6 @@ import socket
 from logging import Logger
 
 # Source Desination formatting validators
-
 def validate_azure_blob_url(url: str, logger: Logger) -> bool:
     parsed_url = urlparse(url)
     if not parsed_url.scheme or not parsed_url.netloc:
@@ -18,17 +17,21 @@ def validate_azure_blob_url(url: str, logger: Logger) -> bool:
     if 'blob.core.windows.net' not in parsed_url.netloc:
         logger.info(f"Invalid URL: {url}\nURL must be a valid Azure Blob Storage URL.")
         return False
+    logger.info(f"Provided URL appears to be valid: {url}")
     return True
 
 def validate_local_path(path: str, logger: Logger) -> bool:
     if not Path(path).exists():
-        logger.info(f"File or Directory at path does not exist: {path}")
+        logger.info(f"File or Directory does not exist locally at path: {path}")
         return False
+    logger.info(f"Found File or Directory locally at path: {path}")
     return True
+
+def is_valid_path_or_url(path:str, logger: Logger) -> bool:
+    return validate_local_path(path, logger) or validate_azure_blob_url(path, logger)
 
 
 # Auth validators   
-
 def validate_azcopy_envs(vars:list, logger: Logger):
     """
     Checks for the existence of an environment variable.
