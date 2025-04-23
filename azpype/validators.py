@@ -14,7 +14,7 @@ def validate_azure_blob_url(url: str, logger: Logger) -> bool:
     if parsed_url.scheme not in ["https", "http"]:
         logger.info(f"Invalid URL: {url}")
         return False
-    if 'blob.core.windows.net' not in parsed_url.netloc:
+    if not any(domain in parsed_url.netloc for domain in ('blob.core.windows.net', 'dfs.core.windows.net', 'file.core.windows.net')):
         logger.info(f"Invalid URL: {url}\nURL must be a valid Azure Blob Storage URL.")
         return False
     logger.info(f"Provided URL appears to be valid: {url}")
