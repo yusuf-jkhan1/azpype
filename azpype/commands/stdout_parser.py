@@ -1,3 +1,6 @@
+from rich.console import Console
+from rich.table import Table
+
 class AzCopyStdoutParser(object):
     def __init__(self, stdout):
         self.stdout = stdout
@@ -46,3 +49,47 @@ class AzCopyStdoutParser(object):
                 attr = info["attr"]
                 value = line.split(":")[1].strip() if ":" in line else line.split()[1]
                 setattr(self, attr, info["type"](value))
+
+    def summary(self) -> str:
+        """Return Rich-formatted summary of the transfer operation."""
+        console = Console()
+        
+        # Determine status icon and color
+        status_icon = "✅"
+        status_color = "green"
+        if self.final_job_status:
+            if "Failed" in self.final_job_status:
+                status_icon = "❌"
+                status_color = "red"
+            elif "Skipped" in self.final_job_status or "Error" in self.final_job_status:
+                status_icon = "⚠️"
+                status_color = "yellow"
+
+        # Create summary table
+        table = Table(title=f"{status_icon} Transfer Summary", title_style=status_color)
+        table.add_column("Metric", style="cyan", min_width=20)
+        table.add_column("Value", style="magenta")
+
+        # Add rows with safe handling of None values
+        table.add_row("Status", str(self.final_job_status or "Unknown"))
+        table.add_row("Files Completed", str(self.number_of_file_transfers_completed or 0))
+        table.add_row("Files Skipped", str(self.number_of_file_transfers_skipped or 0))
+        table.add_row("Files Failed", str(self.number_of_file_transfers_failed or 0))
+        
+        if self.elapsed_time is not None:
+            table.add_row("Elapsed Time", f"{self.elapsed_time} minutes")
+        
+        if self.total_bytes_transferred is not None:
+            bytes_str = f"{self.total_bytes_transferred:,} bytes" if self.total_bytes_transferred > 0 else "0 bytes"
+            table.add_row("Bytes Transferred", bytes_str)
+        
+        if self.job_id:
+            # Truncate job ID for display
+            job_display = self.job_id[:16] + "..." if len(self.job_id) > 16 else self.job_id
+            table.add_row("Job ID", job_display)
+
+        # Render to string using console
+        with console.capture() as capture:
+            console.print(table)
+        
+        return capture.get()
