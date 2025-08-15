@@ -3,6 +3,7 @@ from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 import time
 from .base_command import BaseCommand
+from .stdout_parser import AzCopyStdoutParser
 from azpype.logging_config import CopyLogger
 from azpype.validators import validate_azcopy_envs, validate_login_type, is_valid_path_or_url, validate_local_path, validate_network_available
 
@@ -62,8 +63,7 @@ class Copy(BaseCommand):
         """
         super().__init__('copy')
         self.run_name, self.run_log_directory, self.logger = CopyLogger(self.command_name).get_logger()
-        self.logger.info(f"Run name: {self.run_name}")
-        self.logger.info(f"Run log directory: {self.run_log_directory}")
+        self.logger.info(f"Starting copy operation")
 
         self.source = source
         self.sas_token = sas_token
@@ -94,56 +94,18 @@ class Copy(BaseCommand):
 
         Returns
         -------
-        tuple
-            A tuple containing the exit code and output of the command execution.
+        AzCopyStdoutParser
+            A parsed object containing structured output data with accessible attributes.
+            Raw stdout is available via .raw_stdout attribute.
         """
         args = [self.source, self.destination]
-        return super().execute(args, self.options)
-
-# TODO: Add support for filewatching agent
-# class MonitoredCopy(Copy):
-#     def __init__(self, source: str, destination: str, **options):
-#         super().__init__(source, destination, **options)
-#         self.source = source
-#         self.destination = destination
-#         self.observer = Observer()
-
-#     def _is_network_filesystem(self):
-#         if platform.system() == 'Windows' and self.source.startswith('\\\\'):
-#             return True
-
-#         elif platform.system() in ('Linux', 'Darwin'):
-#             try:
-#                 df_output = subprocess.check_output(['df', self.source]).decode().split("\n")
-#                 fs_type = df_output[1].split()[-1]
-#                 return fs_type in ('nfs', 'smbfs', 'cifs')
-#             except:
-#                 pass
-#             return False
-
-#     def _set_observer(self):
-#         if _is_network_filesystem:
-#             self.observer = PollingObserver()
-#         else:
-#             self.observer = Observer()
-
-#     class CopyHandler(FileSystemEventHandler):
-#         def __init__(self, monitored_copy):
-#             self.monitored_copy = monitored_copy
-
-#         def on_any_event(self, event):
-#             if not event.is_directory:
-#                 self.monitored_copy.execute()
-                
-#     def execute_with_monitoring(self):
-#         event_handler = self.CopyHandler(self)
-#         self.observer.schedule(event_handler, path=self.source, recursive=False)
-#         self.observer.start()
-
-#         try:
-#             while True:
-#                 time.sleep(1)
-#         except KeyboardInterrupt:
-#             self.observer.stop()
-
-#         self.observer.join()
+        exit_code, stdout = super().execute(args, self.options)
+        
+        # Parse stdout and enhance with additional data
+        parsed = AzCopyStdoutParser(stdout)
+        parsed.exit_code = exit_code
+        parsed.raw_stdout = stdout
+        
+        # No need for summary table - the command output already shows comprehensive results
+        
+        return parsed

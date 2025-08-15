@@ -6,7 +6,7 @@ from azpype.logging_config import JobsLogger
 class Jobs(BaseCommand):
     def __init__(self, job_id=None, **options):
         super().__init__('jobs')
-        self.logger = JobsLogger(self.command_name).get_logger()
+        # Logger is now configured in BaseCommand __init__
         self.job_id = job_id
         self.options = options
         
@@ -30,7 +30,9 @@ class Jobs(BaseCommand):
         ----------
         run_id : str: Looks like this: 2023-05-26/11-12-32--snowy-dawn-3904/
         """
-        full_path = pathlib.Path("~/.azpype/runs").expanduser() / run / "logs"
+        # With new simplified logging, we need a different approach for job recovery
+        # For now, we'll use the AzCopy job plan location
+        full_path = pathlib.Path("~/.azpype/plans").expanduser()
     
         log_file = list(full_path.glob('*.log'))[0]
 
