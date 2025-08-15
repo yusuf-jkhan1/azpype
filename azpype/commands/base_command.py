@@ -30,12 +30,31 @@ class BaseCommand(ABC):
             except yaml.YAMLError as exc:
                 self.logger.info(exc)
 
-        # Delete keys with value of NULL
-        config = {k: v for k, v in config.items() if v != 'NULL'}
+        # Delete keys with value of NULL or None
+        config = {k: v for k, v in config.items() if v not in ['NULL', None]}
             
         if options is not None:
-            config.update(options)
+            # Also filter None values from runtime options
+            filtered_options = {k: v for k, v in options.items() if v is not None}
+            config.update(filtered_options)
+        
+        # Log detailed config to file
         self.logger.info(f"\nFlag Config: {json.dumps(config, indent=4)}\n")
+        
+        # Show pretty config on console if there are any flags
+        if config:
+            console = Console()
+            from rich.table import Table
+            
+            table = Table(title="🏁 Configuration Flags", title_style="blue")
+            table.add_column("Flag", style="cyan", min_width=15)
+            table.add_column("Value", style="magenta")
+            
+            for key, value in config.items():
+                table.add_row(f"--{key}", str(value))
+            
+            console.print(table)
+        
         return config
 
         
@@ -73,6 +92,32 @@ class BaseCommand(ABC):
                 cmd_parts.append(f"--{option}={value}")
         return cmd_parts
 
+    def _format_command_readable(self, args: list, options: dict) -> str:
+        """Format command in a readable multi-line format."""
+        lines = ["azcopy " + self.command_name + " \\"]
+        
+        # Add positional arguments with labels
+        if len(args) >= 1:
+            lines.append(f"  source: {args[0]} \\")
+        if len(args) >= 2:
+            lines.append(f"  destination: {args[1]} \\")
+        if len(args) > 2:
+            for i, arg in enumerate(args[2:], start=3):
+                lines.append(f"  arg{i}: {arg} \\")
+        
+        # Add options
+        for option, value in options.items():
+            if isinstance(value, bool) and value:
+                lines.append(f"  --{option}=true \\")
+            elif value is not None:
+                lines.append(f"  --{option}={value} \\")
+        
+        # Remove trailing backslash from last line
+        if lines[-1].endswith(" \\"):
+            lines[-1] = lines[-1][:-2]
+        
+        return "\n".join(lines)
+
     def execute(self, args: list, options: dict):
         """
         Execute the built command and handle any exceptions.
@@ -92,21 +137,21 @@ class BaseCommand(ABC):
         console = Console()
         command = self.build_command(args, options)
         
-        # Pretty command display
-        cmd_text = ' '.join(command)
-        syntax = Syntax(cmd_text, "bash", theme="monokai", word_wrap=True)
+        # Pretty command display with readable format
+        readable_cmd = self._format_command_readable(args, options)
+        syntax = Syntax(readable_cmd, "bash", theme="monokai", word_wrap=True)
         console.print(Panel(syntax, title="🚀 Executing Command", border_style="blue"))
         
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             
-            # Log to file with original format
+            # Log to file with original format (detailed logging)
             self.logger.info(f"\n======Command=======\n {' '.join(command)}\n")
             self.logger.info(f"\n======Output======\n{result.stdout}")
             if result.stderr:
                 self.logger.info(f"\n======Stderr======\n{result.stderr}")
             
-            # Pretty console output
+            # Pretty console output (Rich panels only, no duplication)
             if result.stdout:
                 console.print(Panel(result.stdout, title="📋 Command Output", border_style="green"))
             if result.stderr:
@@ -115,10 +160,10 @@ class BaseCommand(ABC):
             return result.returncode, result.stdout
             
         except subprocess.CalledProcessError as e:
-            # Log to file with original format
+            # Log to file with original format (detailed logging)
             self.logger.info(f"Execution failed: {str(e)}\nStdout: {e.stdout}\nStderr: {e.stderr}")
             
-            # Pretty console error display
+            # Pretty console error display (Rich panels only)
             error_content = []
             if e.stdout:
                 error_content.append(f"[white]Stdout:[/white]\n{e.stdout}")
