@@ -1,1 +1,1 @@
-from test_basecommand import TestBaseCommand
+from .test_basecommand import TestBaseCommand

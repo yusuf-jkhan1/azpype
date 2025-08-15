@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 from abc import ABC, abstractmethod
 from azpype.retry import RetryPolicy
+from azpype.resource_paths import get_azcopy_path, ensure_user_config
 from azpype.logging_config import NullLogger
 from azpype.validators import validate_azcopy_envs, validate_login_type, validate_network_available
 
@@ -13,14 +14,14 @@ class BaseCommand(ABC):
     def __init__(self, command_name: str, retry_policy=None):
         self.command_name = command_name
         self.retry_policy = retry_policy or RetryPolicy()
-        self.azcopy_path = os.path.expanduser("~/.azpype/azcopy") #Executable
+        self.azcopy_path = get_azcopy_path()
         self.logger = NullLogger(__name__)
 
 
     def build_flags(self, options: dict):
-        config = {}  
-        config_path = Path("~/.azpype/copy_config.yaml").expanduser() #Hardcoded for now
-        with open(config_path,'r') as f:
+        config = {}
+        config_path = ensure_user_config()
+        with open(config_path, 'r') as f:
             try:
                 config = yaml.safe_load(f)
             except yaml.YAMLError as exc:

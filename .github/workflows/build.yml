@@ -1,67 +1,70 @@
-name: Build and Publish Universal Wheel
+name: Build and Publish
 
 on:
   push:
+    tags:
+      - 'v*'  # Trigger on version tags
     branches:
-      - main
-      - develop
-  pull_request:
-    types:
-      - closed
+      - main  # Build on main for testing
+  pull_request:  # Build on PRs for testing
 
 jobs:
-  build_wheels:
-    name: Build universal wheel
+  build:
+    name: Build wheel
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: '3.11'
+
+      - name: Install build dependencies
+        run: python -m pip install --upgrade pip build
 
       - name: Build wheel
-        run: |
-          python -m pip install wheel  # Ensure wheel is installed
-          python setup.py bdist_wheel --universal
-          mkdir -p wheelhouse
-          mv dist/*.whl wheelhouse/
+        run: python -m build --wheel
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
-          path: ./wheelhouse/*.whl
+          name: dist
+          path: ./dist/*.whl
 
-  upload_wheels:
-    needs: build_wheels
+  publish:
+    name: Publish to PyPI
+    needs: build
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    
     steps:
       - name: Download wheels
         uses: actions/download-artifact@v4
         with:
-          name: wheels
+          name: dist
           path: dist/
 
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: '3.11'
 
       - name: Install twine
-        run: python -m pip install twine
+        run: python -m pip install --upgrade pip twine
 
-      - name: Publish wheels to PyPI
-        run: |
-          if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
-            twine upload --skip-existing --repository-url https://test.pypi.org/legacy/ dist/*.whl
-          else
-            twine upload --skip-existing --repository-url https://upload.pypi.org/legacy/ dist/*.whl
-          fi
+      - name: Publish to Test PyPI
+        if: contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha')
+        run: twine upload --skip-existing --repository testpypi dist/*.whl
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+
+      - name: Publish to PyPI
+        if: ${{ !contains(github.ref, '-rc') && !contains(github.ref, '-beta') && !contains(github.ref, '-alpha') }}
+        run: twine upload --skip-existing dist/*.whl
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN_AZPYPE }}
