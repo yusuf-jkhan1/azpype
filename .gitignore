@@ -95,6 +95,9 @@ dmypy.json
 .pyre/
 
 # VSCode
+.claude/
+CLAUDE.md
+PLAN.md
 .vscode/
 
 # PyCharm
