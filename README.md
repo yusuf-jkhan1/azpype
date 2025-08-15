@@ -28,11 +28,8 @@ Install via pip
 pip install azpype
 ```
 
-Then from the terminal run
-```
-azpype-init
-```
-This will install and setup a `~/.azpype` directory and download the appropriate azcopy binary and baseline config.
+No separate init step is required. The AzCopy binary and a baseline config template ship with the package.
+On first use, azpype will create `~/.azpype/copy_config.yaml` from the bundled template if it doesn't exist.
 
 ---
 ## Usage
@@ -90,7 +87,7 @@ For shared access signature use the `sas_token` parameter in the `Copy()` comman
 
 ### Configuration
 
-When pip installed a directory called `~/.azpype` will be created, underneath it there will be a configuration file called `copy_config.yaml`. These are default key-values that are options/arguments to the `Copy` command.
+When installed, azpype includes a configuration template. On first run, a `~/.azpype/copy_config.yaml` file will be created if missing. These are default key-values that are options/arguments to the `Copy` command.
 For example the yaml could have values like this:
 ```yaml
 # Overwrite the conflicting files and blobs at the destination if this flag is set to true.

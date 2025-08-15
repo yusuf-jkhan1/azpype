@@ -2,6 +2,7 @@
 test_assets/
 TODO.txt
 .venv/
+*.venv/
 nb_tests/
 misc/
 # Byte-compiled / optimized / DLL files

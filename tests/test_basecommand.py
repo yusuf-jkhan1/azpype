@@ -3,8 +3,8 @@ sys.path.append('../')
 import unittest
 from unittest.mock import patch, Mock
 from azpype.commands.base_command import BaseCommand
+from azpype.resource_paths import get_azcopy_path
 import subprocess
-from pathlib import Path
 
 
 class TestBaseCommand(unittest.TestCase):
@@ -14,7 +14,7 @@ class TestBaseCommand(unittest.TestCase):
     def test_build_command(self):
         args = ["arg1", "arg2"]
         options = {"option1": "value1", "option2": True}
-        expected_command = [str(Path("~/.azpype/azcopy").expanduser()), "test_command", "arg1", "arg2", "--option1=value1", "--option2=true"]
+        expected_command = [get_azcopy_path(), "test_command", "arg1", "arg2", "--option1=value1", "--option2=true"]
         self.assertEqual(self.command.build_command(args, options), expected_command)
 
     @patch("subprocess.run")
