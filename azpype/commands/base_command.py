@@ -38,8 +38,8 @@ class BaseCommand(ABC):
             filtered_options = {k: v for k, v in options.items() if v is not None}
             config.update(filtered_options)
         
-        # Log detailed config to file
-        self.logger.info(f"\nFlag Config: {json.dumps(config, indent=4)}\n")
+        # Log detailed config to file only (suppress console output since we have Rich table)
+        # We'll skip the logger.info() call here to avoid duplication
         
         # Show pretty config on console if there are any flags
         if config:
@@ -145,11 +145,8 @@ class BaseCommand(ABC):
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             
-            # Log to file with original format (detailed logging)
-            self.logger.info(f"\n======Command=======\n {' '.join(command)}\n")
-            self.logger.info(f"\n======Output======\n{result.stdout}")
-            if result.stderr:
-                self.logger.info(f"\n======Stderr======\n{result.stderr}")
+            # Log to file with original format (detailed logging) - suppress console to avoid duplication
+            # Skip these logger.info() calls since we now have Rich panels
             
             # Pretty console output (Rich panels only, no duplication)
             if result.stdout:
@@ -160,8 +157,8 @@ class BaseCommand(ABC):
             return result.returncode, result.stdout
             
         except subprocess.CalledProcessError as e:
-            # Log to file with original format (detailed logging)
-            self.logger.info(f"Execution failed: {str(e)}\nStdout: {e.stdout}\nStderr: {e.stderr}")
+            # Log to file with original format (detailed logging) - suppress console to avoid duplication
+            # Skip logger.info() call since we now have Rich panels
             
             # Pretty console error display (Rich panels only)
             error_content = []
