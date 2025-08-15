@@ -107,4 +107,7 @@ class Copy(BaseCommand):
         parsed.exit_code = exit_code
         parsed.raw_stdout = stdout
         
+        # Show pretty summary
+        print(parsed.summary())
+        
         return parsed

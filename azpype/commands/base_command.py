@@ -4,6 +4,9 @@ import json
 import subprocess
 from pathlib import Path
 from abc import ABC, abstractmethod
+from rich.console import Console
+from rich.panel import Panel
+from rich.syntax import Syntax
 from azpype.retry import RetryPolicy
 from azpype.resource_paths import get_azcopy_path, ensure_user_config
 from azpype.logging_config import NullLogger
@@ -86,15 +89,44 @@ class BaseCommand(ABC):
         tuple
             A tuple containing the exit code and output of the command execution.
         """
+        console = Console()
         command = self.build_command(args, options)
+        
+        # Pretty command display
+        cmd_text = ' '.join(command)
+        syntax = Syntax(cmd_text, "bash", theme="monokai", word_wrap=True)
+        console.print(Panel(syntax, title="🚀 Executing Command", border_style="blue"))
+        
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)
+            
+            # Log to file with original format
             self.logger.info(f"\n======Command=======\n {' '.join(command)}\n")
             self.logger.info(f"\n======Output======\n{result.stdout}")
             if result.stderr:
                 self.logger.info(f"\n======Stderr======\n{result.stderr}")
+            
+            # Pretty console output
+            if result.stdout:
+                console.print(Panel(result.stdout, title="📋 Command Output", border_style="green"))
+            if result.stderr:
+                console.print(Panel(f"[yellow]{result.stderr}[/yellow]", title="⚠️ Warning Output", border_style="yellow"))
+            
             return result.returncode, result.stdout
+            
         except subprocess.CalledProcessError as e:
+            # Log to file with original format
             self.logger.info(f"Execution failed: {str(e)}\nStdout: {e.stdout}\nStderr: {e.stderr}")
+            
+            # Pretty console error display
+            error_content = []
+            if e.stdout:
+                error_content.append(f"[white]Stdout:[/white]\n{e.stdout}")
+            if e.stderr:
+                error_content.append(f"[white]Stderr:[/white]\n{e.stderr}")
+            
+            error_text = "\n\n".join(error_content) if error_content else str(e)
+            console.print(Panel(f"[red]{error_text}[/red]", title="❌ Command Failed", border_style="red"))
+            
             return e.returncode, e.stdout
 
