@@ -93,7 +93,7 @@ class CopyLogger:
         
         handler_error = logging.StreamHandler()
         handler_error.setLevel(self.log_level)
-        handler_error.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        handler_error.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] [COPY] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
 
         self.logger.addHandler(handler)
         self.logger.addHandler(handler_error)
@@ -143,7 +143,7 @@ class JobsLogger():
         
         handler_error = logging.StreamHandler()
         handler_error.setLevel(self.log_level)
-        handler_error.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        handler_error.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] [JOBS] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
 
         #self.logger.addHandler(handler)
         self.logger.addHandler(handler_error)
