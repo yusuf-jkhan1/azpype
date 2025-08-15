@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 from azpype.retry import RetryPolicy
 from azpype.resource_paths import get_azcopy_path, ensure_user_config
-from azpype.logging_config import NullLogger
+from azpype.logging_config import AzpypeLogger
 from azpype.validators import validate_azcopy_envs, validate_login_type, validate_network_available
 
 
@@ -18,7 +18,7 @@ class BaseCommand(ABC):
         self.command_name = command_name
         self.retry_policy = retry_policy or RetryPolicy()
         self.azcopy_path = get_azcopy_path()
-        self.logger = NullLogger(__name__)
+        self.logger = AzpypeLogger(command_name).get_logger()
 
 
     def build_flags(self, options: dict):
@@ -150,8 +150,19 @@ class BaseCommand(ABC):
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             
-            # Log to file with original format (detailed logging) - suppress console to avoid duplication
-            # Skip these logger.info() calls since we now have Rich panels
+            # Log command execution and output to file
+            self.logger.info("=" * 50 + " COMMAND EXECUTION " + "=" * 50)
+            self.logger.info(f"Command: {' '.join(command)}")
+            self.logger.info(f"Exit Code: {result.returncode}")
+            if result.stdout.strip():
+                self.logger.info("STDOUT:")
+                for line in result.stdout.strip().split('\n'):
+                    self.logger.info(f"  {line}")
+            if result.stderr.strip():
+                self.logger.info("STDERR:")
+                for line in result.stderr.strip().split('\n'):
+                    self.logger.info(f"  {line}")
+            self.logger.info("=" * 117)
             
             # Pretty console output (Rich panels only, no duplication)
             if result.stdout:
@@ -167,8 +178,19 @@ class BaseCommand(ABC):
             return result.returncode, result.stdout
             
         except subprocess.CalledProcessError as e:
-            # Log to file with original format (detailed logging) - suppress console to avoid duplication
-            # Skip logger.info() call since we now have Rich panels
+            # Log command execution and error to file
+            self.logger.error("=" * 50 + " COMMAND FAILED " + "=" * 52)
+            self.logger.error(f"Command: {' '.join(command)}")
+            self.logger.error(f"Exit Code: {e.returncode}")
+            if e.stdout and e.stdout.strip():
+                self.logger.error("STDOUT:")
+                for line in e.stdout.strip().split('\n'):
+                    self.logger.error(f"  {line}")
+            if e.stderr and e.stderr.strip():
+                self.logger.error("STDERR:")
+                for line in e.stderr.strip().split('\n'):
+                    self.logger.error(f"  {line}")
+            self.logger.error("=" * 117)
             
             # Pretty console error display (Rich panels only)
             error_content = []

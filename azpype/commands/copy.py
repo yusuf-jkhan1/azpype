@@ -63,8 +63,7 @@ class Copy(BaseCommand):
         """
         super().__init__('copy')
         self.run_name, self.run_log_directory, self.logger = CopyLogger(self.command_name).get_logger()
-        self.logger.info(f"Run name: {self.run_name}")
-        self.logger.info(f"Run log directory: {self.run_log_directory}")
+        self.logger.info(f"Starting copy operation")
 
         self.source = source
         self.sas_token = sas_token
