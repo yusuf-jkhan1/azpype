@@ -46,7 +46,12 @@ class BaseCommand(ABC):
             console = Console()
             from rich.table import Table
             
-            table = Table(title="🏁 Configuration Flags", title_style="blue")
+            # Calculate sensible width for config table
+            max_flag_length = max(len(f"--{key}") for key in config.keys()) if config else 15
+            max_value_length = max(len(str(value)) for value in config.values()) if config else 15
+            table_width = min(80, max(40, max_flag_length + max_value_length + 10))
+            
+            table = Table(title="🏁 Configuration Flags", title_style="blue", width=table_width)
             table.add_column("Flag", style="cyan", min_width=15)
             table.add_column("Value", style="magenta")
             
@@ -140,7 +145,7 @@ class BaseCommand(ABC):
         # Pretty command display with readable format
         readable_cmd = self._format_command_readable(args, options)
         syntax = Syntax(readable_cmd, "bash", theme="monokai", word_wrap=True)
-        console.print(Panel(syntax, title="🚀 Executing Command", border_style="blue"))
+        console.print(Panel(syntax, title="🚀 Executing Command", border_style="blue", width=min(100, max(60, len(max(readable_cmd.split('\n'), key=len)) + 10))))
         
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)
@@ -150,9 +155,14 @@ class BaseCommand(ABC):
             
             # Pretty console output (Rich panels only, no duplication)
             if result.stdout:
-                console.print(Panel(result.stdout, title="📋 Command Output", border_style="green"))
+                # Calculate sensible width based on content, with min 60 and max 120
+                max_line_length = max(len(line) for line in result.stdout.split('\n')) if result.stdout.strip() else 60
+                panel_width = min(120, max(60, max_line_length + 4))
+                console.print(Panel(result.stdout, title="📋 Command Output", border_style="green", width=panel_width))
             if result.stderr:
-                console.print(Panel(f"[yellow]{result.stderr}[/yellow]", title="⚠️ Warning Output", border_style="yellow"))
+                max_line_length = max(len(line) for line in result.stderr.split('\n')) if result.stderr.strip() else 60
+                panel_width = min(120, max(60, max_line_length + 4))
+                console.print(Panel(f"[yellow]{result.stderr}[/yellow]", title="⚠️ Warning Output", border_style="yellow", width=panel_width))
             
             return result.returncode, result.stdout
             
@@ -168,7 +178,10 @@ class BaseCommand(ABC):
                 error_content.append(f"[white]Stderr:[/white]\n{e.stderr}")
             
             error_text = "\n\n".join(error_content) if error_content else str(e)
-            console.print(Panel(f"[red]{error_text}[/red]", title="❌ Command Failed", border_style="red"))
+            # Calculate sensible width for error panel
+            max_line_length = max(len(line) for line in error_text.split('\n')) if error_text.strip() else 60
+            panel_width = min(120, max(60, max_line_length + 4))
+            console.print(Panel(f"[red]{error_text}[/red]", title="❌ Command Failed", border_style="red", width=panel_width))
             
             return e.returncode, e.stdout
 
