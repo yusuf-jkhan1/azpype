@@ -1,5 +1,4 @@
 import os
-import sys
 from pathlib import Path
 from loguru import logger
 
@@ -30,7 +29,7 @@ class AzpypeLogger:
         (self.base_dir / "plans").mkdir(exist_ok=True, parents=True)
     
     def _configure_logger(self):
-        """Configure loguru with file rotation and console output."""
+        """Configure loguru with file rotation only (no console output to avoid duplication with Rich)."""
         # Remove default handler
         logger.remove()
         
@@ -41,14 +40,6 @@ class AzpypeLogger:
             compression="gz",
             retention="7 days",
             format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {extra[command]} | {message}",
-            level="INFO"
-        )
-        
-        # Console handler with colors
-        logger.add(
-            sys.stderr,
-            format="<green>{time:HH:mm:ss}</green> [<level>{level}</level>] [<cyan>{extra[command]}</cyan>] {message}",
-            colorize=True,
             level="INFO"
         )
     
