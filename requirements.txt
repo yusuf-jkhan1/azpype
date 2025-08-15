@@ -42,3 +42,5 @@ charset-normalizer==3.2.0
 idna==3.4
 requests==2.31.0
 urllib3==2.0.4
+rich>=13.0.0
+loguru>=0.7.0
