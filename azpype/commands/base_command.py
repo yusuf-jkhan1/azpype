@@ -91,8 +91,10 @@ class BaseCommand(ABC):
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             self.logger.info(f"\n======Command=======\n {' '.join(command)}\n")
             self.logger.info(f"\n======Output======\n{result.stdout}")
+            if result.stderr:
+                self.logger.info(f"\n======Stderr======\n{result.stderr}")
             return result.returncode, result.stdout
         except subprocess.CalledProcessError as e:
-            self.logger.info(f"Execution failed: {str(e)}\nOutput: {e.output}\nError: {e.stderr}")
-            return e.returncode, e.output
+            self.logger.info(f"Execution failed: {str(e)}\nStdout: {e.stdout}\nStderr: {e.stderr}")
+            return e.returncode, e.stdout
 
