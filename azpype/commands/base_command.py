@@ -34,8 +34,12 @@ class BaseCommand(ABC):
         config = {k: v for k, v in config.items() if v not in ['NULL', None]}
             
         if options is not None:
-            # Also filter None values from runtime options
-            filtered_options = {k: v for k, v in options.items() if v is not None}
+            # Convert underscores to hyphens for CLI compatibility and filter None values
+            filtered_options = {
+                k.replace('_', '-'): v 
+                for k, v in options.items() 
+                if v is not None
+            }
             config.update(filtered_options)
         
         # Log detailed config to file only (suppress console output since we have Rich table)
