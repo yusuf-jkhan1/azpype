@@ -1,4 +1,4 @@
-# Azpype 🚀
+# Azpype 🚀 [beta]
 
 A Python wrapper for AzCopy that feels native and gets out of your way.
 
@@ -52,41 +52,83 @@ Copy(
 
 ### Working with Return Values
 
-The `execute()` method returns a tuple of (exit_code, output):
+The `execute()` method returns an `AzCopyStdoutParser` object with parsed attributes - no manual string parsing needed!
 
 ```python
-# Capture and inspect the results
-exit_code, output = Copy(
+# Execute returns a parsed object with useful attributes
+result = Copy(
     source="./data",
     destination="https://myaccount.blob.core.windows.net/mycontainer/"
 ).execute()
 
-if exit_code == 0:
+# Access structured data directly
+print(f"Job ID: {result.job_id}")
+print(f"Files transferred: {result.number_of_file_transfers_completed}")
+print(f"Files skipped: {result.number_of_file_transfers_skipped}")
+print(f"Bytes transferred: {result.total_bytes_transferred}")
+print(f"Elapsed time: {result.elapsed_time} minutes")
+print(f"Final status: {result.final_job_status}")
+
+# Use exit code for flow control
+if result.exit_code == 0:
     print("Transfer successful!")
-    # Parse the output for job details
-    if "Job" in output:
-        job_id = output.split("Job ")[1].split(" ")[0]
-        print(f"Job ID: {job_id}")
 else:
-    print(f"Transfer failed with code: {exit_code}")
-    
-# Use in your data pipeline
-def process_and_upload(data_path):
-    # Pre-process data
-    prepare_data(data_path)
-    
-    # Upload with error handling
-    exit_code, output = Copy(
-        source=data_path,
-        destination="https://myaccount.blob.core.windows.net/processed/"
+    print(f"Transfer failed: {result.stdout}")
+```
+
+#### Available Attributes
+
+The parser automatically extracts these attributes from AzCopy output:
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `exit_code` | int | Command exit code (0 = success) |
+| `job_id` | str | Unique job identifier for resuming |
+| `elapsed_time` | float | Transfer duration in minutes |
+| `final_job_status` | str | Status like "Completed", "CompletedWithSkipped", "Failed" |
+| `number_of_file_transfers` | int | Total files attempted |
+| `number_of_file_transfers_completed` | int | Successfully transferred files |
+| `number_of_file_transfers_skipped` | int | Files skipped (already exist, etc.) |
+| `number_of_file_transfers_failed` | int | Failed file transfers |
+| `total_bytes_transferred` | int | Total data transferred in bytes |
+| `total_number_of_transfers` | int | Total transfer operations |
+| `stdout` | str | Raw command output if needed |
+| `raw_stdout` | str | Unprocessed output with ANSI codes |
+
+#### Real-World Example: Pipeline Integration
+
+```python
+def smart_sync_with_monitoring(local_path, remote_path):
+    """
+    Sync data and monitor transfer metrics
+    """
+    result = Copy(
+        source=local_path,
+        destination=remote_path,
+        overwrite="ifSourceNewer",
+        recursive=True
     ).execute()
     
-    if exit_code != 0:
-        raise Exception(f"Upload failed: {output}")
+    # Make decisions based on parsed results
+    if result.exit_code != 0:
+        raise Exception(f"Transfer failed: {result.final_job_status}")
     
-    # Continue with post-processing
-    cleanup_local_data(data_path)
-    return output
+    if result.number_of_file_transfers_failed > 0:
+        print(f"Warning: {result.number_of_file_transfers_failed} files failed")
+        # Could trigger retry logic here
+    
+    if result.number_of_file_transfers_skipped == result.number_of_file_transfers:
+        print("All files already up-to-date")
+        return "NO_CHANGES"
+    
+    # Report transfer metrics
+    gb_transferred = result.total_bytes_transferred / (1024**3)
+    transfer_rate = gb_transferred / (result.elapsed_time / 60)  # GB/hour
+    
+    print(f"Transferred {gb_transferred:.2f} GB at {transfer_rate:.2f} GB/hour")
+    print(f"Completed: {result.number_of_file_transfers_completed} files")
+    
+    return result.job_id  # Return for potential resume operations
 ```
 
 ## Authentication
